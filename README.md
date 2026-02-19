@@ -64,6 +64,21 @@ Der JSON-Report enthält u. a.:
 - pro Gruppe: gefundene Pfade, bereinigt, fehlgeschlagen
 - Temp-Cleanup-Status
 - Gesamtsummen
+  - `found_paths`
+  - `found_bytes`
+  - `groups_total`
+  - `groups_selected`
+
+## Output & UI
+
+- Farbmodi: `--color auto|always|never`
+- Schöne Section-Header mit klaren Gruppenblöcken
+- Zusammenfassung mit:
+  - gefundener Pfadanzahl
+  - geschätzter Gesamtgröße der gefundenen Caches
+  - gewählten Gruppen
+  - Erfolgs-/Fehlerzähler
+- Optional `--debug` für extra Diagnosen
 
 ## Qualitätssicherung
 
@@ -87,6 +102,8 @@ Es gibt einen automatischen Sync-Flow für `arch-cache-cleaner-git`:
 ./scripts/sync_aur.sh
 ```
 
+Wichtig: Das Script darf **nicht als root** laufen (wegen `makepkg`).
+
 Nützliche Variablen:
 
 - `SOURCE_DIR` (Standard: aktuelles Verzeichnis)
@@ -108,6 +125,11 @@ PUSH_CHANGES=0 AUR_DIR=~/Aurstuff/arch-cache-cleaner-git ./scripts/sync_aur.sh
 3. Workflow `AUR Sync` manuell starten oder durch Änderungen an `PKGBUILD` triggern
 
 Der Workflow regeneriert `.SRCINFO`, synced `PKGBUILD/.SRCINFO/LICENSE` und pusht nur bei echten Änderungen.
+
+### `pkgrel`-Regel
+
+- Bei Packaging-Änderungen (z. B. `PKGBUILD`, Installpfade, Dependencies, Workflow-relevante Paketdaten) `pkgrel` erhöhen.
+- Bei reinem Upstream-Code-Update im `-git` Paket bleibt `pkgver=r0.0` + `pkgver()` dynamisch, `pkgrel` nur bei Bedarf erhöhen.
 
 Legacy-Wrapper (weiterhin verfügbar):
 

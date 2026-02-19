@@ -413,17 +413,21 @@ def clear_path_contents(path: Path, dry_run: bool) -> bool:
     return ok
 
 
-def print_group_preview(group: CacheGroup, resolved_paths: list[Path], quiet: bool, style: CliStyle) -> None:
+def print_group_preview(group: CacheGroup, resolved_paths: list[Path], quiet: bool, style: CliStyle) -> tuple[int, int]:
     if not resolved_paths:
         if not quiet:
             print(style.dim(f"[INFO] {group.title}: nichts gefunden"))
-        return
+        return 0, 0
 
     print("\n" + style.subtitle(f"✨ {group.title}"))
     print(style.dim("-" * 40))
+    total_bytes = 0
     for path in resolved_paths:
-        size = format_bytes(size_of_path(path))
+        path_size = size_of_path(path)
+        size = format_bytes(path_size)
+        total_bytes += path_size
         print(f"  {style.accent('•')} {path} ({size})")
+    return len(resolved_paths), total_bytes
 
 
 def temp_roots(platform_key: str) -> list[Path]:
@@ -656,6 +660,10 @@ def main() -> int:
         "totals": {
             "cleaned": 0,
             "failed": 0,
+            "found_paths": 0,
+            "found_bytes": 0,
+            "groups_total": len(groups),
+            "groups_selected": 0,
         },
     }
 
@@ -680,17 +688,24 @@ def main() -> int:
 
     cleaned: list[str] = []
     failed: list[str] = []
+    found_paths_total = 0
+    found_bytes_total = 0
+    selected_groups = 0
 
     for group_key, group in groups.items():
         resolved = [expand_path(p) for p in group.paths]
         existing = [p for p in resolved if p.exists()]
-        print_group_preview(group, existing, quiet=args.quiet, style=style)
+        found_count, found_bytes = print_group_preview(group, existing, quiet=args.quiet, style=style)
+        found_paths_total += found_count
+        found_bytes_total += found_bytes
         debug_log(args.debug, style, f"Group {group_key}: {len(existing)} existing paths")
 
         group_report = {
             "key": group_key,
             "title": group.title,
             "paths_found": [str(path) for path in existing],
+            "paths_found_count": found_count,
+            "paths_found_bytes": found_bytes,
             "selected": False,
             "action": "skipped_no_paths" if not existing else "pending",
             "cleaned": [],
@@ -711,6 +726,7 @@ def main() -> int:
 
         group_report["selected"] = True
         group_report["action"] = "processed"
+        selected_groups += 1
 
         for path in existing:
             if clear_path_contents(path, dry_run=args.dry_run):
@@ -760,24 +776,30 @@ def main() -> int:
 
     report["totals"]["cleaned"] = len(cleaned)
     report["totals"]["failed"] = len(failed)
+    report["totals"]["found_paths"] = found_paths_total
+    report["totals"]["found_bytes"] = found_bytes_total
+    report["totals"]["groups_selected"] = selected_groups
 
-    print("\n" + style.subtitle("Zusammenfassung"))
+    print("\n" + style.subtitle("📊 Zusammenfassung"))
     print(style.subtitle("-------------"))
-    print(f"Erfolgreich bearbeitet: {len(cleaned)}")
+    print(f"{style.accent('•')} Gefundene Pfade: {found_paths_total}")
+    print(f"{style.accent('•')} Gefundene Größe: {format_bytes(found_bytes_total)}")
+    print(f"{style.accent('•')} Gewählte Gruppen: {selected_groups}/{len(groups)}")
+    print(f"{style.accent('•')} Erfolgreich bearbeitet: {len(cleaned)}")
     if failed:
-        print(style.warn(f"Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
+        print(style.warn(f"{style.accent('•')} Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
     else:
-        print(style.success(f"Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
+        print(style.success(f"{style.accent('•')} Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
 
     if cleaned:
         print("\nBereinigt:")
         for item in cleaned:
-            print(f"  - {item}")
+            print(f"  {style.success('✓')} {item}")
 
     if failed:
         print("\nNicht bereinigt:")
         for item in failed:
-            print(f"  - {item}")
+            print(f"  {style.warn('⚠')} {item}")
 
     if args.export_report:
         report_path = Path(os.path.expanduser(os.path.expandvars(args.export_report))).resolve(strict=False)
