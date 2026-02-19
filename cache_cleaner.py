@@ -146,6 +146,13 @@ def dedupe_paths(paths: list[Path]) -> list[Path]:
     return unique
 
 
+def path_exists(path: Path) -> bool:
+    try:
+        return path.exists()
+    except OSError:
+        return False
+
+
 def ask_yes_no(prompt: str) -> bool:
     while True:
         answer = input(f"{prompt} [y/N]: ").strip().lower()
@@ -187,7 +194,7 @@ def fast_dir_size(path: Path) -> int | None:
 
 
 def size_of_path(path: Path) -> int:
-    if not path.exists():
+    if not path_exists(path):
         return 0
     try:
         if path.is_file() or path.is_symlink():
@@ -231,7 +238,7 @@ def dangerous_path(path: Path) -> bool:
 
 
 def remove_entry(path: Path, dry_run: bool) -> bool:
-    if not path.exists():
+    if not path_exists(path):
         return True
 
     if dangerous_path(path):
@@ -265,7 +272,7 @@ def remove_entry(path: Path, dry_run: bool) -> bool:
 
 
 def clear_path_contents(path: Path, dry_run: bool) -> bool:
-    if not path.exists():
+    if not path_exists(path):
         return True
 
     if path.is_file() or path.is_symlink():
@@ -422,7 +429,7 @@ def print_group_overview(groups: dict[str, CacheGroup]) -> None:
     print("------------------")
     for key, group in groups.items():
         resolved = [expand_path(path) for path in group.paths]
-        existing = dedupe_paths([path for path in resolved if path.exists()])
+        existing = dedupe_paths([path for path in resolved if path_exists(path)])
         print(f"- {key}: {group.title}")
         if existing:
             for path in existing:
@@ -542,7 +549,11 @@ def main() -> int:
                 {
                     "key": key,
                     "title": group.title,
-                    "paths_found": [str(path) for path in [expand_path(p) for p in group.paths] if path.exists()],
+                    "paths_found": [
+                        str(path)
+                        for path in [expand_path(p) for p in group.paths]
+                        if path_exists(path)
+                    ],
                     "selected": False,
                     "action": "list_only",
                     "cleaned": [],
@@ -562,7 +573,7 @@ def main() -> int:
 
     for group_key, group in groups.items():
         resolved = [expand_path(p) for p in group.paths]
-        existing = dedupe_paths([p for p in resolved if p.exists()])
+        existing = dedupe_paths([p for p in resolved if path_exists(p)])
         found_count, found_bytes = print_group_preview(group, existing, quiet=args.quiet, style=style)
         found_paths_total += found_count
         found_bytes_total += found_bytes
