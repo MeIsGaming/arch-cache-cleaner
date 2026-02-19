@@ -1,0 +1,60 @@
+name: AUR Sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master", "main"]
+    paths:
+      - "PKGBUILD"
+      - "LICENSE"
+      - "scripts/sync_aur.sh"
+      - ".github/workflows/aur-sync.yml"
+
+jobs:
+  sync-aur:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    env:
+      AUR_REPO: ssh://aur@aur.archlinux.org/arch-cache-cleaner-git.git
+      AUR_BRANCH: master
+      SOURCE_DIR: ${{ github.workspace }}
+      COMMIT_MESSAGE: "chore(aur): sync from github ${{ github.sha }}"
+      PUSH_CHANGES: "1"
+
+    steps:
+      - name: Install dependencies
+        run: pacman -Sy --noconfirm --needed git openssh base-devel
+
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Configure git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup SSH for AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets['AUR_SSH_PRIVATE_KEY'] }}
+        run: |
+          if [ -z "${AUR_SSH_PRIVATE_KEY}" ]; then
+            echo "AUR_SSH_PRIVATE_KEY secret is missing"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur_key
+          chmod 600 ~/.ssh/aur_key
+          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_key
+            StrictHostKeyChecking yes
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Sync AUR repository
+        run: ./scripts/sync_aur.sh

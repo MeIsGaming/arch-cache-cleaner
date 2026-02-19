@@ -74,6 +74,41 @@ Der JSON-Report enthält u. a.:
   - Smoke-Test `--list-groups`
   - Smoke-Test `--dry-run --yes --only dev --no-temp`
 
+## AUR Automation
+
+Es gibt einen automatischen Sync-Flow für `arch-cache-cleaner-git`:
+
+- Script: `scripts/sync_aur.sh`
+- Workflow: `.github/workflows/aur-sync.yml`
+
+### Lokal manuell syncen
+
+```bash
+./scripts/sync_aur.sh
+```
+
+Nützliche Variablen:
+
+- `SOURCE_DIR` (Standard: aktuelles Verzeichnis)
+- `AUR_REPO` (Standard: `ssh://aur@aur.archlinux.org/arch-cache-cleaner-git.git`)
+- `AUR_BRANCH` (Standard: `master`)
+- `AUR_DIR` (optional lokales Zielverzeichnis)
+- `PUSH_CHANGES=0` (nur Commit lokal, kein Push)
+
+Beispiel ohne Push:
+
+```bash
+PUSH_CHANGES=0 AUR_DIR=~/Aurstuff/arch-cache-cleaner-git ./scripts/sync_aur.sh
+```
+
+### GitHub Auto-Sync aktivieren
+
+1. In GitHub Repo-Settings ein Secret anlegen: `AUR_SSH_PRIVATE_KEY`
+2. Private Key des AUR-SSH-Keys hinterlegen
+3. Workflow `AUR Sync` manuell starten oder durch Änderungen an `PKGBUILD` triggern
+
+Der Workflow regeneriert `.SRCINFO`, synced `PKGBUILD/.SRCINFO/LICENSE` und pusht nur bei echten Änderungen.
+
 Legacy-Wrapper (weiterhin verfügbar):
 
 ```bash
