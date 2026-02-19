@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  lint-and-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install lint tooling
+        run: python -m pip install --upgrade pip ruff
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Syntax check
+        run: python -m py_compile cache_cleaner.py
+
+      - name: Smoke test list-groups
+        run: python cache_cleaner.py --list-groups --config ./cache_paths.json --color never
+
+      - name: Smoke test dry-run automation
+        run: python cache_cleaner.py --dry-run --yes --only dev --no-temp --config ./cache_paths.json --color never

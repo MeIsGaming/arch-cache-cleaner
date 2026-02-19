@@ -13,17 +13,51 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 @dataclass(frozen=True)
 class CacheGroup:
     title: str
     prompt: str
-    paths: List[str]
+    paths: list[str]
 
 
-DEFAULT_CACHE_CONFIG: Dict[str, Dict[str, Dict[str, Any]]] = {
+@dataclass(frozen=True)
+class CliStyle:
+    enabled: bool
+
+    def color(self, text: str, code: str) -> str:
+        if not self.enabled:
+            return text
+        return f"\033[{code}m{text}\033[0m"
+
+    def info(self, text: str) -> str:
+        return self.color(text, "36")
+
+    def warn(self, text: str) -> str:
+        return self.color(text, "33")
+
+    def error(self, text: str) -> str:
+        return self.color(text, "31")
+
+    def success(self, text: str) -> str:
+        return self.color(text, "32")
+
+    def title(self, text: str) -> str:
+        return self.color(text, "1;35")
+
+    def subtitle(self, text: str) -> str:
+        return self.color(text, "1;34")
+
+    def dim(self, text: str) -> str:
+        return self.color(text, "2")
+
+    def accent(self, text: str) -> str:
+        return self.color(text, "1;36")
+
+
+DEFAULT_CACHE_CONFIG: dict[str, dict[str, dict[str, Any]]] = {
     "linux": {
         "install": {
             "title": "Installations-Cache (pacman/apt/dnf/zypp/...)",
@@ -162,6 +196,7 @@ DEFAULT_CACHE_CONFIG: Dict[str, Dict[str, Dict[str, Any]]] = {
     },
 }
 
+
 def resolve_default_config_path() -> Path:
     env_path = os.environ.get("ARCH_CACHE_CLEANER_CONFIG")
     if env_path:
@@ -179,14 +214,14 @@ def resolve_default_config_path() -> Path:
     return candidates[0].resolve(strict=False)
 
 
-def parse_cache_config(raw: Dict[str, Any]) -> Dict[str, Dict[str, CacheGroup]]:
-    parsed: Dict[str, Dict[str, CacheGroup]] = {}
+def parse_cache_config(raw: dict[str, Any]) -> dict[str, dict[str, CacheGroup]]:
+    parsed: dict[str, dict[str, CacheGroup]] = {}
 
     for platform_key, group_map in raw.items():
         if not isinstance(platform_key, str) or not isinstance(group_map, dict):
             continue
 
-        groups: Dict[str, CacheGroup] = {}
+        groups: dict[str, CacheGroup] = {}
         for group_key, group_data in group_map.items():
             if not isinstance(group_key, str) or not isinstance(group_data, dict):
                 continue
@@ -200,7 +235,8 @@ def parse_cache_config(raw: Dict[str, Any]) -> Dict[str, Dict[str, CacheGroup]]:
             if not all(isinstance(path, str) for path in paths):
                 continue
 
-            groups[group_key] = CacheGroup(title=title, prompt=prompt, paths=paths)
+            groups[group_key] = CacheGroup(
+                title=title, prompt=prompt, paths=paths)
 
         if groups:
             parsed[platform_key] = groups
@@ -211,7 +247,7 @@ def parse_cache_config(raw: Dict[str, Any]) -> Dict[str, Dict[str, CacheGroup]]:
     return parsed
 
 
-def load_cache_paths(config_path: Path) -> Tuple[Dict[str, Dict[str, CacheGroup]], bool]:
+def load_cache_paths(config_path: Path) -> tuple[dict[str, dict[str, CacheGroup]], bool]:
     if config_path.exists():
         try:
             raw = json.loads(config_path.read_text(encoding="utf-8"))
@@ -265,6 +301,26 @@ def format_bytes(size: int) -> str:
     return f"{size} B"
 
 
+def fast_dir_size(path: Path) -> int | None:
+    if os.name != "posix":
+        return None
+    if shutil.which("du") is None:
+        return None
+    try:
+        result = subprocess.run(
+            ["du", "-sb", str(path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return None
+        value = result.stdout.strip().split("\t", 1)[0]
+        return int(value)
+    except (OSError, ValueError):
+        return None
+
+
 def size_of_path(path: Path) -> int:
     if not path.exists():
         return 0
@@ -273,6 +329,10 @@ def size_of_path(path: Path) -> int:
             return path.stat().st_size
     except OSError:
         return 0
+
+    fast_size = fast_dir_size(path)
+    if fast_size is not None:
+        return fast_size
 
     total = 0
     for root, dirs, files in os.walk(path, onerror=lambda _e: None):
@@ -328,7 +388,8 @@ def remove_entry(path: Path, dry_run: bool) -> bool:
             print(f"[WARN] Keine Rechte für: {path}")
             return False
 
-        result = subprocess.run(["sudo", "rm", "-rf", "--", str(path)], check=False)
+        result = subprocess.run(
+            ["sudo", "rm", "-rf", "--", str(path)], check=False)
         if result.returncode == 0:
             return True
         print(f"[WARN] Löschen fehlgeschlagen: {path}")
@@ -352,20 +413,20 @@ def clear_path_contents(path: Path, dry_run: bool) -> bool:
     return ok
 
 
-def print_group_preview(group: CacheGroup, resolved_paths: List[Path], quiet: bool) -> None:
+def print_group_preview(group: CacheGroup, resolved_paths: list[Path], quiet: bool, style: CliStyle) -> None:
     if not resolved_paths:
         if not quiet:
-            print(f"[INFO] {group.title}: nichts gefunden")
+            print(style.dim(f"[INFO] {group.title}: nichts gefunden"))
         return
 
-    print(f"\n{group.title}")
-    print("-" * 40)
+    print("\n" + style.subtitle(f"✨ {group.title}"))
+    print(style.dim("-" * 40))
     for path in resolved_paths:
         size = format_bytes(size_of_path(path))
-        print(f"  - {path} ({size})")
+        print(f"  {style.accent('•')} {path} ({size})")
 
 
-def temp_roots(platform_key: str) -> List[Path]:
+def temp_roots(platform_key: str) -> list[Path]:
     if platform_key == "win32":
         roots = [tempfile.gettempdir()]
         for key in ("TMP", "TEMP"):
@@ -385,7 +446,7 @@ def temp_roots(platform_key: str) -> List[Path]:
     return [Path("/tmp"), Path("/var/tmp")]
 
 
-def clean_temp_older_than(days: int, platform_key: str, dry_run: bool) -> tuple[List[str], List[str]]:
+def clean_temp_older_than(days: int, platform_key: str, dry_run: bool) -> tuple[list[str], list[str]]:
     cleaned, failed = [], []
     now = datetime.now().timestamp()
     threshold_seconds = days * 86400
@@ -416,22 +477,124 @@ def clean_temp_older_than(days: int, platform_key: str, dry_run: bool) -> tuple[
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Interaktiver Multi-Platform Cache-Cleaner")
-    parser.add_argument("--dry-run", action="store_true", help="Nur anzeigen, nichts löschen")
+    parser = argparse.ArgumentParser(
+        description="Interaktiver Multi-Platform Cache-Cleaner")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Nur anzeigen, nichts löschen")
     parser.add_argument("--quiet", action="store_true", help="Weniger Ausgabe")
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Alle gefundenen Gruppen ohne Rückfrage bereinigen (außer Temp, wenn --temp-days nicht gesetzt)",
+    )
+    parser.add_argument(
+        "--only",
+        default=None,
+        help="Nur bestimmte Gruppen-Keys ausführen (kommagetrennt, z. B. install,aur_build)",
+    )
+    parser.add_argument(
+        "--list-groups",
+        action="store_true",
+        help="Nur verfügbare Gruppen und vorhandene Pfade anzeigen, dann beenden",
+    )
+    parser.add_argument(
+        "--no-temp",
+        action="store_true",
+        help="Temporäre Bereinigung überspringen",
+    )
+    parser.add_argument(
+        "--temp-days",
+        type=int,
+        default=None,
+        help="Temp-Dateien älter als N Tage bereinigen (ohne Nachfrage für Temp)",
+    )
     parser.add_argument(
         "--config",
         default=None,
         help="Pfad zu JSON-Datei mit Cache-Profilen",
     )
+    parser.add_argument(
+        "--export-report",
+        default=None,
+        help="JSON-Report in diese Datei schreiben",
+    )
+    parser.add_argument(
+        "--color",
+        choices=("auto", "always", "never"),
+        default="auto",
+        help="Farbige Ausgabe: auto, always oder never",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Zusätzliche Diagnoseausgaben aktivieren",
+    )
     return parser.parse_args()
+
+
+def parse_only_groups(raw_only: str | None) -> set[str] | None:
+    if raw_only is None:
+        return None
+
+    keys = {chunk.strip() for chunk in raw_only.split(",") if chunk.strip()}
+    if not keys:
+        return None
+    return keys
+
+
+def filter_groups(groups: dict[str, CacheGroup], only_keys: set[str] | None) -> dict[str, CacheGroup]:
+    if not only_keys:
+        return groups
+    return {key: value for key, value in groups.items() if key in only_keys}
+
+
+def print_group_overview(groups: dict[str, CacheGroup]) -> None:
+    print("\nVerfügbare Gruppen")
+    print("------------------")
+    for key, group in groups.items():
+        resolved = [expand_path(path) for path in group.paths]
+        existing = [path for path in resolved if path.exists()]
+        print(f"- {key}: {group.title}")
+        if existing:
+            for path in existing:
+                print(f"    * {path}")
+        else:
+            print("    * keine vorhandenen Pfade")
+
+
+def debug_log(enabled: bool, style: CliStyle, message: str) -> None:
+    if enabled:
+        print(style.dim(f"[DEBUG] {message}"))
+
+
+def colors_enabled(mode: str) -> bool:
+    if mode == "always":
+        return True
+    if mode == "never":
+        return False
+    return sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+
+def write_report(path: Path, report: dict[str, Any], style: CliStyle) -> bool:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(style.success(f"[OK] Report geschrieben: {path}"))
+        return True
+    except OSError as exc:
+        print(style.error(f"[ERROR] Report konnte nicht geschrieben werden ({path}): {exc}"))
+        return False
 
 
 def main() -> int:
     args = parse_args()
+    style = CliStyle(enabled=colors_enabled(args.color))
     platform_key = detect_platform()
-    raw_config_path = args.config if args.config else str(resolve_default_config_path())
-    config_path = Path(os.path.expanduser(os.path.expandvars(raw_config_path))).resolve(strict=False)
+    raw_config_path = args.config if args.config else str(
+        resolve_default_config_path())
+    config_path = Path(os.path.expanduser(
+        os.path.expandvars(raw_config_path))).resolve(strict=False)
+    debug_log(args.debug, style, f"Resolved config path: {config_path}")
     cache_paths, config_loaded = load_cache_paths(config_path)
 
     groups = cache_paths.get(platform_key)
@@ -440,52 +603,171 @@ def main() -> int:
     if groups is None and cache_paths:
         groups = next(iter(cache_paths.values()))
     if groups is None:
-        print("[ERROR] Keine gültigen Cache-Gruppen verfügbar.")
+        print(style.error("[ERROR] Keine gültigen Cache-Gruppen verfügbar."))
         return 1
 
-    print("\nCache Cleaner (Python, Cross-Platform)")
-    print("======================================")
+    only_keys = parse_only_groups(args.only)
+    unknown_only_keys: set[str] = set()
+    if only_keys:
+        unknown_only_keys = only_keys.difference(groups.keys())
+        groups = filter_groups(groups, only_keys)
+
+    if not groups:
+        print(style.error("[ERROR] Keine passenden Gruppen ausgewählt."))
+        return 1
+
+    print("\n" + style.title("Cache Cleaner (Python, Cross-Platform)"))
+    print(style.title("======================================"))
     print(f"Detected OS: {platform.system()} ({platform_key})")
     if config_loaded:
         print(f"Config: {config_path}")
+    if only_keys:
+        print(f"Gruppenfilter: {', '.join(sorted(only_keys))}")
+        if unknown_only_keys:
+            print(style.warn(f"[WARN] Unbekannte Gruppen ignoriert: {', '.join(sorted(unknown_only_keys))}"))
     if args.dry_run:
-        print("Modus: DRY-RUN (es wird nichts gelöscht)")
+        print(style.warn("Modus: DRY-RUN (es wird nichts gelöscht)"))
+    debug_log(args.debug, style, f"Active group keys: {', '.join(groups.keys())}")
 
-    cleaned: List[str] = []
-    failed: List[str] = []
+    report: dict[str, Any] = {
+        "timestamp": datetime.now().astimezone().isoformat(),
+        "platform": {
+            "detected": platform.system(),
+            "key": platform_key,
+        },
+        "config": str(config_path),
+        "dry_run": args.dry_run,
+        "options": {
+            "yes": args.yes,
+            "only": sorted(only_keys) if only_keys else [],
+            "no_temp": args.no_temp,
+            "temp_days": args.temp_days,
+            "list_groups": args.list_groups,
+            "color": args.color,
+            "debug": args.debug,
+        },
+        "groups": [],
+        "temp_cleanup": {
+            "executed": False,
+            "days": None,
+            "cleaned": [],
+            "failed": [],
+        },
+        "totals": {
+            "cleaned": 0,
+            "failed": 0,
+        },
+    }
 
-    for group in groups.values():
+    if args.list_groups:
+        print_group_overview(groups)
+        if args.export_report:
+            report["groups"] = [
+                {
+                    "key": key,
+                    "title": group.title,
+                    "paths_found": [str(path) for path in [expand_path(p) for p in group.paths] if path.exists()],
+                    "selected": False,
+                    "action": "list_only",
+                    "cleaned": [],
+                    "failed": [],
+                }
+                for key, group in groups.items()
+            ]
+            report_path = Path(os.path.expanduser(os.path.expandvars(args.export_report))).resolve(strict=False)
+            write_report(report_path, report, style)
+        return 0
+
+    cleaned: list[str] = []
+    failed: list[str] = []
+
+    for group_key, group in groups.items():
         resolved = [expand_path(p) for p in group.paths]
         existing = [p for p in resolved if p.exists()]
-        print_group_preview(group, existing, quiet=args.quiet)
+        print_group_preview(group, existing, quiet=args.quiet, style=style)
+        debug_log(args.debug, style, f"Group {group_key}: {len(existing)} existing paths")
+
+        group_report = {
+            "key": group_key,
+            "title": group.title,
+            "paths_found": [str(path) for path in existing],
+            "selected": False,
+            "action": "skipped_no_paths" if not existing else "pending",
+            "cleaned": [],
+            "failed": [],
+        }
 
         if not existing:
+            report["groups"].append(group_report)
             continue
 
-        if not ask_yes_no(group.prompt):
+        should_clean = args.yes or ask_yes_no(group.prompt)
+        if not should_clean:
             if not args.quiet:
-                print(f"[INFO] Übersprungen: {group.title}")
+                print(style.info(f"[INFO] Übersprungen: {group.title}"))
+            group_report["action"] = "skipped_by_user"
+            report["groups"].append(group_report)
             continue
+
+        group_report["selected"] = True
+        group_report["action"] = "processed"
 
         for path in existing:
             if clear_path_contents(path, dry_run=args.dry_run):
                 cleaned.append(str(path))
+                group_report["cleaned"].append(str(path))
             else:
                 failed.append(str(path))
+                group_report["failed"].append(str(path))
 
-    if ask_yes_no("Do you want to clean temporary files older than N days?"):
-        value = input("Delete files older than how many days? [7]: ").strip() or "7"
-        if value.isdigit():
-            temp_cleaned, temp_failed = clean_temp_older_than(int(value), platform_key, dry_run=args.dry_run)
-            cleaned.extend(temp_cleaned)
-            failed.extend(temp_failed)
+        report["groups"].append(group_report)
+
+    run_temp = False
+    temp_days = args.temp_days
+
+    if args.no_temp:
+        run_temp = False
+    elif temp_days is not None:
+        if temp_days < 0:
+            print(style.warn("[WARN] --temp-days muss >= 0 sein, Temp-Bereinigung übersprungen."))
         else:
-            print("[WARN] Ungültige Zahl, temporäre Bereinigung übersprungen.")
+            run_temp = True
+    elif args.yes:
+        if not args.quiet:
+            print(style.info("[INFO] Temp-Bereinigung im --yes Modus übersprungen (setze --temp-days N zum Aktivieren)."))
+    elif ask_yes_no("Do you want to clean temporary files older than N days?"):
+        value = input(
+            "Delete files older than how many days? [7]: ").strip() or "7"
+        if value.isdigit():
+            temp_days = int(value)
+            run_temp = True
+        else:
+            print(style.warn("[WARN] Ungültige Zahl, temporäre Bereinigung übersprungen."))
 
-    print("\nZusammenfassung")
-    print("-------------")
+    if run_temp and temp_days is not None:
+        temp_cleaned, temp_failed = clean_temp_older_than(
+            temp_days, platform_key, dry_run=args.dry_run)
+        cleaned.extend(temp_cleaned)
+        failed.extend(temp_failed)
+        report["temp_cleanup"] = {
+            "executed": True,
+            "days": temp_days,
+            "cleaned": temp_cleaned,
+            "failed": temp_failed,
+        }
+    else:
+        report["temp_cleanup"]["executed"] = False
+
+    report["totals"]["cleaned"] = len(cleaned)
+    report["totals"]["failed"] = len(failed)
+
+    print("\n" + style.subtitle("Zusammenfassung"))
+    print(style.subtitle("-------------"))
     print(f"Erfolgreich bearbeitet: {len(cleaned)}")
-    print(f"Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}")
+    if failed:
+        print(style.warn(f"Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
+    else:
+        print(style.success(f"Fehlgeschlagen/übersprungen wegen Rechten: {len(failed)}"))
 
     if cleaned:
         print("\nBereinigt:")
@@ -497,7 +779,11 @@ def main() -> int:
         for item in failed:
             print(f"  - {item}")
 
-    print("\nFertig.")
+    if args.export_report:
+        report_path = Path(os.path.expanduser(os.path.expandvars(args.export_report))).resolve(strict=False)
+        write_report(report_path, report, style)
+
+    print("\n" + style.success("Fertig."))
     return 0
 
 
