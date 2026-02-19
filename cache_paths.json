@@ -1,0 +1,138 @@
+{
+  "linux": {
+    "install": {
+      "title": "Installations-Cache (pacman/apt/dnf/zypp/...)",
+      "prompt": "Do you want to remove installation cache (yay, pacman, apt, dnf, ...)?",
+      "paths": [
+        "/var/cache/pacman/pkg",
+        "/var/cache/apt/archives",
+        "/var/cache/apt/archives/partial",
+        "/var/cache/dnf",
+        "/var/cache/yum",
+        "/var/cache/zypp",
+        "/var/cache/xbps",
+        "/var/cache/apk",
+        "/var/cache/eopkg/packages",
+        "/var/cache/portage/distfiles",
+        "/var/cache/edb/dep",
+        "/var/lib/snapd/cache",
+        "/var/cache/pacstall"
+      ]
+    },
+    "aur_build": {
+      "title": "AUR/Build-Cache (yay/paru/pamac/...)",
+      "prompt": "Do you want to remove AUR/build helper cache (yay, paru, pamac, ...)?",
+      "paths": [
+        "~/.cache/yay",
+        "~/.cache/paru",
+        "~/.cache/trizen",
+        "~/.cache/pikaur",
+        "~/.cache/pamac",
+        "/var/tmp/pamac-build-{user}",
+        "/tmp/pamac-build-{user}"
+      ]
+    },
+    "dev": {
+      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "paths": [
+        "~/.cache/pip",
+        "~/.npm/_cacache",
+        "~/.cache/pnpm",
+        "~/.cache/yarn",
+        "~/.cache/go-build",
+        "~/.cargo/registry/cache",
+        "~/.cargo/git/db",
+        "~/.gradle/caches",
+        "~/.m2/repository"
+      ]
+    },
+    "user": {
+      "title": "User-Cache (thumbnails/browser/fontconfig)",
+      "prompt": "Do you want to remove user cache (thumbnails/browser/fontconfig)?",
+      "paths": [
+        "~/.cache/thumbnails",
+        "~/.cache/fontconfig",
+        "~/.cache/mozilla",
+        "~/.cache/google-chrome",
+        "~/.cache/chromium",
+        "~/.cache/BraveSoftware"
+      ]
+    }
+  },
+  "darwin": {
+    "install": {
+      "title": "Installations-Cache (homebrew/macports)",
+      "prompt": "Do you want to remove installation cache (Homebrew, MacPorts)?",
+      "paths": [
+        "~/Library/Caches/Homebrew",
+        "/Library/Caches/Homebrew",
+        "/opt/local/var/macports/distfiles"
+      ]
+    },
+    "dev": {
+      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "paths": [
+        "~/Library/Caches/pip",
+        "~/.cache/pip",
+        "~/.npm/_cacache",
+        "~/Library/Caches/Yarn",
+        "~/.cache/pnpm",
+        "~/Library/Caches/go-build",
+        "~/.cargo/registry/cache",
+        "~/.cargo/git/db",
+        "~/.gradle/caches",
+        "~/.m2/repository"
+      ]
+    },
+    "user": {
+      "title": "User-Cache (browser/font)",
+      "prompt": "Do you want to remove user cache (browser/font/thumbnail)?",
+      "paths": [
+        "~/Library/Caches/Google/Chrome",
+        "~/Library/Caches/Chromium",
+        "~/Library/Caches/BraveSoftware",
+        "~/Library/Caches/Firefox",
+        "~/Library/Caches/com.apple.iconservices.store"
+      ]
+    }
+  },
+  "win32": {
+    "install": {
+      "title": "Installations-Cache (winget/choco/scoop)",
+      "prompt": "Do you want to remove installation cache (winget/choco/scoop)?",
+      "paths": [
+        "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\DiagOutputDir",
+        "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\TempState",
+        "~\\AppData\\Local\\NuGet\\v3-cache",
+        "C:\\ProgramData\\chocolatey\\lib-bkp",
+        "~\\scoop\\cache"
+      ]
+    },
+    "dev": {
+      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "paths": [
+        "~\\AppData\\Local\\pip\\Cache",
+        "~\\AppData\\Roaming\\npm-cache",
+        "~\\AppData\\Local\\pnpm\\cache",
+        "~\\AppData\\Local\\Yarn\\Cache",
+        "~\\.cargo\\registry\\cache",
+        "~\\.cargo\\git\\db",
+        "~\\.gradle\\caches",
+        "~\\.m2\\repository"
+      ]
+    },
+    "user": {
+      "title": "User-Cache (browser/thumbnail)",
+      "prompt": "Do you want to remove user cache (browser/thumbnail)?",
+      "paths": [
+        "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\Microsoft\\Windows\\Explorer"
+      ]
+    }
+  }
+}
