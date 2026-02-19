@@ -67,5 +67,3 @@ Zusätzlich liegt ein erweitertes Beispielprofil bereit: `cache_paths.custom.jso
 ## Hinweis
 
 Systemweite Caches benötigen je nach Plattform erhöhte Rechte. Unter Linux/macOS nutzt das Skript bei Bedarf `sudo`.
-
-

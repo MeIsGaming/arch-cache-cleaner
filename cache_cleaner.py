@@ -162,7 +162,21 @@ DEFAULT_CACHE_CONFIG: Dict[str, Dict[str, Dict[str, Any]]] = {
     },
 }
 
-DEFAULT_CONFIG_PATH = Path(__file__).with_name("cache_paths.json")
+def resolve_default_config_path() -> Path:
+    env_path = os.environ.get("ARCH_CACHE_CLEANER_CONFIG")
+    if env_path:
+        return Path(os.path.expanduser(os.path.expandvars(env_path))).resolve(strict=False)
+
+    candidates = [
+        Path(__file__).with_name("cache_paths.json"),
+        Path("/usr/share/arch-cache-cleaner/cache_paths.json"),
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve(strict=False)
+
+    return candidates[0].resolve(strict=False)
 
 
 def parse_cache_config(raw: Dict[str, Any]) -> Dict[str, Dict[str, CacheGroup]]:
@@ -407,7 +421,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--quiet", action="store_true", help="Weniger Ausgabe")
     parser.add_argument(
         "--config",
-        default=str(DEFAULT_CONFIG_PATH),
+        default=None,
         help="Pfad zu JSON-Datei mit Cache-Profilen",
     )
     return parser.parse_args()
@@ -416,7 +430,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     platform_key = detect_platform()
-    config_path = Path(os.path.expanduser(os.path.expandvars(args.config))).resolve(strict=False)
+    raw_config_path = args.config if args.config else str(resolve_default_config_path())
+    config_path = Path(os.path.expanduser(os.path.expandvars(raw_config_path))).resolve(strict=False)
     cache_paths, config_loaded = load_cache_paths(config_path)
 
     groups = cache_paths.get(platform_key)
