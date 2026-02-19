@@ -19,6 +19,11 @@ require_cmd() {
 require_cmd git
 require_cmd makepkg
 
+if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+  echo "[ERROR] scripts/sync_aur.sh must not run as root (makepkg restriction)." >&2
+  exit 1
+fi
+
 if [[ ! -f "$SOURCE_DIR/PKGBUILD" ]]; then
   echo "[ERROR] PKGBUILD not found in SOURCE_DIR=$SOURCE_DIR" >&2
   exit 1

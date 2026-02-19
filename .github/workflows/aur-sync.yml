@@ -25,15 +25,20 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: pacman -Sy --noconfirm --needed git openssh base-devel
+        run: pacman -Sy --noconfirm --needed git openssh base-devel shadow
 
       - name: Checkout source repo
         uses: actions/checkout@v4
 
+      - name: Create non-root build user
+        run: |
+          useradd -m -U builduser || true
+          chown -R builduser:builduser "$GITHUB_WORKSPACE"
+
       - name: Configure git identity
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          runuser -u builduser -- git config --global user.name "github-actions[bot]"
+          runuser -u builduser -- git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Setup SSH for AUR
         env:
@@ -43,18 +48,20 @@ jobs:
             echo "AUR_SSH_PRIVATE_KEY secret is missing"
             exit 1
           fi
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur_key
-          chmod 600 ~/.ssh/aur_key
-          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-          cat > ~/.ssh/config <<'EOF'
+          install -d -m 700 -o builduser -g builduser /home/builduser/.ssh
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > /home/builduser/.ssh/aur_key
+          chown builduser:builduser /home/builduser/.ssh/aur_key
+          chmod 600 /home/builduser/.ssh/aur_key
+          ssh-keyscan -t rsa aur.archlinux.org > /home/builduser/.ssh/known_hosts
+          chown builduser:builduser /home/builduser/.ssh/known_hosts
+          chmod 644 /home/builduser/.ssh/known_hosts
+          cat > /home/builduser/.ssh/config <<'EOF'
           Host aur.archlinux.org
             IdentityFile ~/.ssh/aur_key
             StrictHostKeyChecking yes
           EOF
-          chmod 600 ~/.ssh/config
+          chown builduser:builduser /home/builduser/.ssh/config
+          chmod 600 /home/builduser/.ssh/config
 
       - name: Sync AUR repository
-        run: ./scripts/sync_aur.sh
+        run: runuser -u builduser -- env SOURCE_DIR="$GITHUB_WORKSPACE" AUR_REPO="$AUR_REPO" AUR_BRANCH="$AUR_BRANCH" COMMIT_MESSAGE="$COMMIT_MESSAGE" PUSH_CHANGES="$PUSH_CHANGES" "$GITHUB_WORKSPACE/scripts/sync_aur.sh"
