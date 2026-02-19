@@ -1,5 +1,5 @@
 pkgname=arch-cache-cleaner-git
-pkgver=r0.0
+pkgver=1.0.0s
 pkgrel=1
 pkgdesc='Interactive cross-platform cache cleaner with configurable profiles (Linux/macOS/Windows)'
 arch=('any')
