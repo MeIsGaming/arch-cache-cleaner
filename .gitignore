@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Packaging/build artifacts
+build/
+dist/
+*.egg-info/
+
+# Arch makepkg outputs
+pkg/
+src/
+*.pkg.tar*
+*.src.tar*
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

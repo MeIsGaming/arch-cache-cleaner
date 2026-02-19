@@ -57,146 +57,6 @@ class CliStyle:
         return self.color(text, "1;36")
 
 
-DEFAULT_CACHE_CONFIG: dict[str, dict[str, dict[str, Any]]] = {
-    "linux": {
-        "install": {
-            "title": "Installations-Cache (pacman/apt/dnf/zypp/...)",
-            "prompt": "Do you want to remove installation cache (yay, pacman, apt, dnf, ...)?",
-            "paths": [
-                "/var/cache/pacman/pkg",
-                "/var/cache/apt/archives",
-                "/var/cache/apt/archives/partial",
-                "/var/cache/dnf",
-                "/var/cache/yum",
-                "/var/cache/zypp",
-                "/var/cache/xbps",
-                "/var/cache/apk",
-                "/var/cache/eopkg/packages",
-                "/var/cache/portage/distfiles",
-                "/var/cache/edb/dep",
-                "/var/lib/snapd/cache",
-                "/var/cache/pacstall",
-            ],
-        },
-        "aur_build": {
-            "title": "AUR/Build-Cache (yay/paru/pamac/...)",
-            "prompt": "Do you want to remove AUR/build helper cache (yay, paru, pamac, ...)?",
-            "paths": [
-                "~/.cache/yay",
-                "~/.cache/paru",
-                "~/.cache/trizen",
-                "~/.cache/pikaur",
-                "~/.cache/pamac",
-                "/var/tmp/pamac-build-{user}",
-                "/tmp/pamac-build-{user}",
-            ],
-        },
-        "dev": {
-            "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-            "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
-            "paths": [
-                "~/.cache/pip",
-                "~/.npm/_cacache",
-                "~/.cache/pnpm",
-                "~/.cache/yarn",
-                "~/.cache/go-build",
-                "~/.cargo/registry/cache",
-                "~/.cargo/git/db",
-                "~/.gradle/caches",
-                "~/.m2/repository",
-            ],
-        },
-        "user": {
-            "title": "User-Cache (thumbnails/browser/fontconfig)",
-            "prompt": "Do you want to remove user cache (thumbnails/browser/fontconfig)?",
-            "paths": [
-                "~/.cache/thumbnails",
-                "~/.cache/fontconfig",
-                "~/.cache/mozilla",
-                "~/.cache/google-chrome",
-                "~/.cache/chromium",
-                "~/.cache/BraveSoftware",
-            ],
-        },
-    },
-    "darwin": {
-        "install": {
-            "title": "Installations-Cache (homebrew/macports)",
-            "prompt": "Do you want to remove installation cache (Homebrew, MacPorts)?",
-            "paths": [
-                "~/Library/Caches/Homebrew",
-                "/Library/Caches/Homebrew",
-                "/opt/local/var/macports/distfiles",
-            ],
-        },
-        "dev": {
-            "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-            "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
-            "paths": [
-                "~/Library/Caches/pip",
-                "~/.cache/pip",
-                "~/.npm/_cacache",
-                "~/Library/Caches/Yarn",
-                "~/.cache/pnpm",
-                "~/Library/Caches/go-build",
-                "~/.cargo/registry/cache",
-                "~/.cargo/git/db",
-                "~/.gradle/caches",
-                "~/.m2/repository",
-            ],
-        },
-        "user": {
-            "title": "User-Cache (browser/font)",
-            "prompt": "Do you want to remove user cache (browser/font/thumbnail)?",
-            "paths": [
-                "~/Library/Caches/Google/Chrome",
-                "~/Library/Caches/Chromium",
-                "~/Library/Caches/BraveSoftware",
-                "~/Library/Caches/Firefox",
-                "~/Library/Caches/com.apple.iconservices.store",
-            ],
-        },
-    },
-    "win32": {
-        "install": {
-            "title": "Installations-Cache (winget/choco/scoop)",
-            "prompt": "Do you want to remove installation cache (winget/choco/scoop)?",
-            "paths": [
-                "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\DiagOutputDir",
-                "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\TempState",
-                "~\\AppData\\Local\\NuGet\\v3-cache",
-                "C:\\ProgramData\\chocolatey\\lib-bkp",
-                "~\\scoop\\cache",
-            ],
-        },
-        "dev": {
-            "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-            "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
-            "paths": [
-                "~\\AppData\\Local\\pip\\Cache",
-                "~\\AppData\\Roaming\\npm-cache",
-                "~\\AppData\\Local\\pnpm\\cache",
-                "~\\AppData\\Local\\Yarn\\Cache",
-                "~\\.cargo\\registry\\cache",
-                "~\\.cargo\\git\\db",
-                "~\\.gradle\\caches",
-                "~\\.m2\\repository",
-            ],
-        },
-        "user": {
-            "title": "User-Cache (browser/thumbnail)",
-            "prompt": "Do you want to remove user cache (browser/thumbnail)?",
-            "paths": [
-                "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache",
-                "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Cache",
-                "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache",
-                "~\\AppData\\Local\\Microsoft\\Windows\\Explorer",
-            ],
-        },
-    },
-}
-
-
 def resolve_default_config_path() -> Path:
     env_path = os.environ.get("ARCH_CACHE_CLEANER_CONFIG")
     if env_path:
@@ -247,21 +107,14 @@ def parse_cache_config(raw: dict[str, Any]) -> dict[str, dict[str, CacheGroup]]:
     return parsed
 
 
-def load_cache_paths(config_path: Path) -> tuple[dict[str, dict[str, CacheGroup]], bool]:
-    if config_path.exists():
-        try:
-            raw = json.loads(config_path.read_text(encoding="utf-8"))
-            if not isinstance(raw, dict):
-                raise ValueError("Config muss ein JSON-Objekt sein")
-            return parse_cache_config(raw), True
-        except (OSError, json.JSONDecodeError, ValueError) as exc:
-            print(f"[WARN] Konnte Config nicht laden ({config_path}): {exc}")
-            print("[WARN] Fallback auf eingebettete Defaults.")
-    else:
-        print(f"[WARN] Config-Datei nicht gefunden: {config_path}")
-        print("[WARN] Fallback auf eingebettete Defaults.")
+def load_cache_paths(config_path: Path) -> dict[str, dict[str, CacheGroup]]:
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config-Datei nicht gefunden: {config_path}")
 
-    return parse_cache_config(DEFAULT_CACHE_CONFIG), False
+    raw = json.loads(config_path.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError("Config muss ein JSON-Objekt sein")
+    return parse_cache_config(raw)
 
 
 def detect_platform() -> str:
@@ -279,6 +132,18 @@ def expand_path(raw: str) -> Path:
     user = os.environ.get("USER") or os.environ.get("USERNAME") or "user"
     formatted = raw.format(user=user)
     return Path(os.path.expanduser(os.path.expandvars(formatted))).resolve(strict=False)
+
+
+def dedupe_paths(paths: list[Path]) -> list[Path]:
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = str(path).lower() if os.name == "nt" else str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(path)
+    return unique
 
 
 def ask_yes_no(prompt: str) -> bool:
@@ -557,7 +422,7 @@ def print_group_overview(groups: dict[str, CacheGroup]) -> None:
     print("------------------")
     for key, group in groups.items():
         resolved = [expand_path(path) for path in group.paths]
-        existing = [path for path in resolved if path.exists()]
+        existing = dedupe_paths([path for path in resolved if path.exists()])
         print(f"- {key}: {group.title}")
         if existing:
             for path in existing:
@@ -599,7 +464,11 @@ def main() -> int:
     config_path = Path(os.path.expanduser(
         os.path.expandvars(raw_config_path))).resolve(strict=False)
     debug_log(args.debug, style, f"Resolved config path: {config_path}")
-    cache_paths, config_loaded = load_cache_paths(config_path)
+    try:
+        cache_paths = load_cache_paths(config_path)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(style.error(f"[ERROR] Konnte Config nicht laden: {exc}"))
+        return 1
 
     groups = cache_paths.get(platform_key)
     if groups is None:
@@ -623,8 +492,7 @@ def main() -> int:
     print("\n" + style.title("Cache Cleaner (Python, Cross-Platform)"))
     print(style.title("======================================"))
     print(f"Detected OS: {platform.system()} ({platform_key})")
-    if config_loaded:
-        print(f"Config: {config_path}")
+    print(f"Config: {config_path}")
     if only_keys:
         print(f"Gruppenfilter: {', '.join(sorted(only_keys))}")
         if unknown_only_keys:
@@ -694,7 +562,7 @@ def main() -> int:
 
     for group_key, group in groups.items():
         resolved = [expand_path(p) for p in group.paths]
-        existing = [p for p in resolved if p.exists()]
+        existing = dedupe_paths([p for p in resolved if p.exists()])
         found_count, found_bytes = print_group_preview(group, existing, quiet=args.quiet, style=style)
         found_paths_total += found_count
         found_bytes_total += found_bytes

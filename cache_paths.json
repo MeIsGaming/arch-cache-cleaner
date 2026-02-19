@@ -1,18 +1,30 @@
 {
   "linux": {
     "install": {
-      "title": "Installations-Cache (pacman/apt/dnf/zypp/...)",
-      "prompt": "Do you want to remove installation cache (yay, pacman, apt, dnf, ...)?",
+      "title": "Installations-Cache (extended linux)",
+      "prompt": "Do you want to remove installation cache (pacman, apt, dnf, zypper, xbps, apk, ...)?",
       "paths": [
         "/var/cache/pacman/pkg",
+        "/var/cache/pacman",
         "/var/cache/apt/archives",
         "/var/cache/apt/archives/partial",
         "/var/cache/dnf",
+        "/var/cache/libdnf5",
         "/var/cache/yum",
         "/var/cache/zypp",
         "/var/cache/xbps",
         "/var/cache/apk",
         "/var/cache/eopkg/packages",
+        "/var/cache/guix",
+        "/var/cache/rpm",
+        "/var/cache/swupd",
+        "/var/cache/slackpkg",
+        "/var/cache/man",
+        "/var/cache/pikaur",
+        "/var/cache/PackageKit",
+        "/var/cache/flatpak",
+        "/var/lib/flatpak/repo/tmp",
+        "/var/tmp/portage",
         "/var/cache/portage/distfiles",
         "/var/cache/edb/dep",
         "/var/lib/snapd/cache",
@@ -20,8 +32,8 @@
       ]
     },
     "aur_build": {
-      "title": "AUR/Build-Cache (yay/paru/pamac/...)",
-      "prompt": "Do you want to remove AUR/build helper cache (yay, paru, pamac, ...)?",
+      "title": "AUR/Build-Cache (extended)",
+      "prompt": "Do you want to remove AUR/build helper cache (yay, paru, pamac, trizen, pikaur)?",
       "paths": [
         "~/.cache/yay",
         "~/.cache/paru",
@@ -29,50 +41,157 @@
         "~/.cache/pikaur",
         "~/.cache/pamac",
         "/var/tmp/pamac-build-{user}",
-        "/tmp/pamac-build-{user}"
+        "/tmp/pamac-build-{user}",
+        "~/.cache/makepkg"
+      ]
+    },
+    "containers": {
+      "title": "Container-Caches (docker/podman/buildah)",
+      "prompt": "Do you want to remove container caches (docker, podman, buildah)?",
+      "paths": [
+        "~/.cache/containers",
+        "~/.local/share/containers/cache",
+        "~/.local/share/docker",
+        "/var/lib/containers/cache",
+        "/var/lib/docker/tmp",
+        "/var/lib/docker/buildkit"
       ]
     },
     "dev": {
-      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "title": "Dev-Tool-Caches (extended)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, pnpm, yarn, cargo, go, gradle, maven, nuget, conda)?",
       "paths": [
+        "~/.cache/ccache",
+        "~/.cache/debuginfod_client",
         "~/.cache/pip",
         "~/.npm/_cacache",
         "~/.cache/pnpm",
         "~/.cache/yarn",
         "~/.cache/go-build",
+        "~/.cache/nimble",
+        "~/.cache/pipenv",
+        "~/.cache/pypoetry",
         "~/.cargo/registry/cache",
         "~/.cargo/git/db",
+        "~/.cache/sccache",
+        "~/.cache/pipx",
+        "~/.cache/nvim",
+        "~/.cache/clangd",
         "~/.gradle/caches",
-        "~/.m2/repository"
+        "~/.m2/repository",
+        "~/.nuget/packages",
+        "~/.cache/uv",
+        "~/.cache/bazel",
+        "~/.cache/JetBrains",
+        "~/.cache/typescript",
+        "~/.cache/ms-playwright",
+        "~/.conda/pkgs",
+        "~/miniconda3/pkgs",
+        "~/anaconda3/pkgs"
+      ]
+    },
+    "browsers": {
+      "title": "Browser-Caches (native)",
+      "prompt": "Do you want to remove browser caches (Chrome/Chromium/Brave/Firefox/LibreWolf/Waterfox)?",
+      "paths": [
+        "~/.cache/google-chrome",
+        "~/.cache/google-chrome/Default/Cache",
+        "~/.cache/google-chrome/Default/Code Cache",
+        "~/.cache/google-chrome/Default/GPUCache",
+        "~/.cache/chromium",
+        "~/.cache/chromium/Default/Cache",
+        "~/.cache/chromium/Default/Code Cache",
+        "~/.cache/chromium/Default/GPUCache",
+        "~/.cache/BraveSoftware",
+        "~/.cache/BraveSoftware/Brave-Browser/Default/Cache",
+        "~/.cache/BraveSoftware/Brave-Browser/Default/Code Cache",
+        "~/.cache/BraveSoftware/Brave-Browser/Default/GPUCache",
+        "~/.cache/vivaldi",
+        "~/.cache/opera",
+        "~/.cache/mozilla",
+        "~/.cache/mozilla/firefox",
+        "~/.cache/librewolf",
+        "~/.cache/waterfox"
+      ]
+    },
+    "flatpak_apps": {
+      "title": "Flatpak App-Caches",
+      "prompt": "Do you want to remove Flatpak app caches (browser/app sandbox cache dirs)?",
+      "paths": [
+        "~/.var/app/com.google.Chrome/cache",
+        "~/.var/app/com.google.ChromeDev/cache",
+        "~/.var/app/org.chromium.Chromium/cache",
+        "~/.var/app/io.github.ungoogled_software.ungoogled_chromium/cache",
+        "~/.var/app/io.github.ungoogled_software.ungoogled_chromium/config/chromium/Default/Cache",
+        "~/.var/app/org.mozilla.firefox/cache",
+        "~/.var/app/org.mozilla.firefox/.mozilla/firefox",
+        "~/.var/app/io.gitlab.librewolf-community/cache",
+        "~/.var/app/io.gitlab.librewolf-community/.librewolf",
+        "~/.var/app/net.waterfox.waterfox/cache"
+      ]
+    },
+    "gaming": {
+      "title": "Gaming-Launcher-Caches",
+      "prompt": "Do you want to remove gaming launcher caches (Steam and related app caches)?",
+      "paths": [
+        "~/.local/share/Steam/appcache",
+        "~/.local/share/Steam/depotcache",
+        "~/.local/share/Steam/logs",
+        "~/.local/share/Steam/steam/logs",
+        "~/.steam/steam/appcache",
+        "~/.steam/steam/logs",
+        "~/.cache/lutris",
+        "~/.cache/heroic",
+        "~/.local/share/Steam/steamapps/shadercache"
       ]
     },
     "user": {
-      "title": "User-Cache (thumbnails/browser/fontconfig)",
-      "prompt": "Do you want to remove user cache (thumbnails/browser/fontconfig)?",
+      "title": "User-Cache (extended)",
+      "prompt": "Do you want to remove user cache (browser, thumbnails, fonts, app caches)?",
       "paths": [
         "~/.cache/thumbnails",
         "~/.cache/fontconfig",
-        "~/.cache/mozilla",
-        "~/.cache/google-chrome",
-        "~/.cache/chromium",
-        "~/.cache/BraveSoftware"
+        "~/.cache/discord",
+        "~/.cache/Code",
+        "~/.cache/vscode-cpptools",
+        "~/.cache/mesa_shader_cache",
+        "~/.cache/spotify",
+        "~/.cache/obs-studio",
+        "~/.cache/thorium",
+        "~/.cache/teams-for-linux",
+        "~/.cache/electron",
+        "~/.local/share/NuGet/http-cache",
+        "~/.local/share/teamviewer15/pictureCache",
+        "~/.local/share/teamviewer15/BuddyListCache"
       ]
     }
   },
   "darwin": {
     "install": {
-      "title": "Installations-Cache (homebrew/macports)",
-      "prompt": "Do you want to remove installation cache (Homebrew, MacPorts)?",
+      "title": "Installations-Cache (extended macOS)",
+      "prompt": "Do you want to remove installation cache (Homebrew, MacPorts, pkg temp)?",
       "paths": [
         "~/Library/Caches/Homebrew",
         "/Library/Caches/Homebrew",
-        "/opt/local/var/macports/distfiles"
+        "/opt/local/var/macports/distfiles",
+        "/private/var/folders",
+        "~/Library/Caches/com.apple.appstore",
+        "/Library/Updates",
+        "~/Library/Caches/com.apple.SoftwareUpdate"
+      ]
+    },
+    "containers": {
+      "title": "Container-Caches (docker/podman)",
+      "prompt": "Do you want to remove container caches (Docker, Podman)?",
+      "paths": [
+        "~/Library/Caches/com.docker.docker",
+        "~/.docker/buildx",
+        "~/.local/share/containers/cache"
       ]
     },
     "dev": {
-      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "title": "Dev-Tool-Caches (extended macOS)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, pnpm, yarn, cargo, go, gradle, maven, nuget)?",
       "paths": [
         "~/Library/Caches/pip",
         "~/.cache/pip",
@@ -83,55 +202,151 @@
         "~/.cargo/registry/cache",
         "~/.cargo/git/db",
         "~/.gradle/caches",
-        "~/.m2/repository"
+        "~/.m2/repository",
+        "~/.nuget/packages",
+        "~/Library/Caches/com.apple.dt.Xcode",
+        "~/Library/Developer/Xcode/DerivedData",
+        "~/Library/Caches/CocoaPods",
+        "~/Library/Caches/org.carthage.CarthageKit",
+        "~/Library/Caches/JetBrains",
+        "~/Library/Caches/pnpm",
+        "~/Library/Caches/com.microsoft.VSCode"
+      ]
+    },
+    "browsers": {
+      "title": "Browser-Caches (extended macOS)",
+      "prompt": "Do you want to remove browser caches (Chrome/Chromium/Brave/Firefox/Safari)?",
+      "paths": [
+        "~/Library/Caches/Google/Chrome",
+        "~/Library/Caches/Google/Chrome/Default/Cache",
+        "~/Library/Caches/Google/Chrome/Default/Code Cache",
+        "~/Library/Caches/Google/Chrome/Default/GPUCache",
+        "~/Library/Caches/Chromium",
+        "~/Library/Caches/Chromium/Default/Cache",
+        "~/Library/Caches/Chromium/Default/Code Cache",
+        "~/Library/Caches/Chromium/Default/GPUCache",
+        "~/Library/Caches/BraveSoftware",
+        "~/Library/Caches/BraveSoftware/Brave-Browser/Default/Cache",
+        "~/Library/Caches/BraveSoftware/Brave-Browser/Default/Code Cache",
+        "~/Library/Caches/BraveSoftware/Brave-Browser/Default/GPUCache",
+        "~/Library/Caches/Firefox",
+        "~/Library/Caches/com.apple.Safari"
+      ]
+    },
+    "gaming": {
+      "title": "Gaming-Launcher-Caches (macOS)",
+      "prompt": "Do you want to remove gaming launcher caches (Steam and related caches)?",
+      "paths": [
+        "~/Library/Application Support/Steam/appcache",
+        "~/Library/Application Support/Steam/depotcache",
+        "~/Library/Application Support/Steam/logs",
+        "~/Library/Caches/com.valvesoftware.steam"
       ]
     },
     "user": {
-      "title": "User-Cache (browser/font)",
-      "prompt": "Do you want to remove user cache (browser/font/thumbnail)?",
+      "title": "User-Cache (extended macOS)",
+      "prompt": "Do you want to remove user cache (browser, finder/icon, app caches)?",
       "paths": [
         "~/Library/Caches/Google/Chrome",
         "~/Library/Caches/Chromium",
         "~/Library/Caches/BraveSoftware",
         "~/Library/Caches/Firefox",
-        "~/Library/Caches/com.apple.iconservices.store"
+        "~/Library/Caches/com.apple.iconservices.store",
+        "~/Library/Caches/com.apple.finder",
+        "~/Library/Caches/com.microsoft.VSCode",
+        "~/Library/Caches/slack",
+        "~/Library/Caches/discord",
+        "~/Library/Caches/Spotify"
       ]
     }
   },
   "win32": {
     "install": {
-      "title": "Installations-Cache (winget/choco/scoop)",
-      "prompt": "Do you want to remove installation cache (winget/choco/scoop)?",
+      "title": "Installations-Cache (extended windows)",
+      "prompt": "Do you want to remove installation cache (winget, chocolatey, scoop, package cache)?",
       "paths": [
         "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\DiagOutputDir",
         "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\TempState",
+        "~\\AppData\\Local\\Packages\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\LocalState\\cache",
         "~\\AppData\\Local\\NuGet\\v3-cache",
         "C:\\ProgramData\\chocolatey\\lib-bkp",
-        "~\\scoop\\cache"
+        "C:\\ProgramData\\chocolatey\\cache",
+        "~\\scoop\\cache",
+        "C:\\ProgramData\\Package Cache",
+        "C:\\Windows\\SoftwareDistribution\\Download",
+        "~\\AppData\\Local\\Temp\\WinGet"
+      ]
+    },
+    "containers": {
+      "title": "Container-Caches (docker/podman)",
+      "prompt": "Do you want to remove container caches (Docker/Podman Desktop caches)?",
+      "paths": [
+        "~\\AppData\\Local\\Docker",
+        "~\\AppData\\Roaming\\Docker",
+        "~\\.docker\\buildx"
       ]
     },
     "dev": {
-      "title": "Dev-Tool-Caches (pip/npm/cargo/...)",
-      "prompt": "Do you want to remove developer tool caches (pip, npm, cargo, ...)?",
+      "title": "Dev-Tool-Caches (extended windows)",
+      "prompt": "Do you want to remove developer tool caches (pip, npm, pnpm, yarn, cargo, gradle, maven, nuget)?",
       "paths": [
         "~\\AppData\\Local\\pip\\Cache",
         "~\\AppData\\Roaming\\npm-cache",
+        "~\\AppData\\Local\\npm-cache",
         "~\\AppData\\Local\\pnpm\\cache",
         "~\\AppData\\Local\\Yarn\\Cache",
+        "~\\AppData\\Local\\Yarn\\Berry\\Cache",
         "~\\.cargo\\registry\\cache",
         "~\\.cargo\\git\\db",
         "~\\.gradle\\caches",
-        "~\\.m2\\repository"
+        "~\\.m2\\repository",
+        "~\\.nuget\\packages",
+        "~\\AppData\\Local\\pipx\\Cache",
+        "~\\AppData\\Local\\DartPub\\Cache",
+        "~\\AppData\\Local\\JetBrains"
+      ]
+    },
+    "browsers": {
+      "title": "Browser-Caches (extended windows)",
+      "prompt": "Do you want to remove browser caches (Chrome/Chromium/Brave/Edge/Firefox)?",
+      "paths": [
+        "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Code Cache",
+        "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\GPUCache",
+        "~\\AppData\\Local\\Chromium\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\Chromium\\User Data\\Default\\Code Cache",
+        "~\\AppData\\Local\\Chromium\\User Data\\Default\\GPUCache",
+        "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Code Cache",
+        "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\GPUCache",
+        "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache",
+        "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Code Cache",
+        "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\GPUCache",
+        "~\\AppData\\Local\\Mozilla\\Firefox\\Profiles"
+      ]
+    },
+    "gaming": {
+      "title": "Gaming-Launcher-Caches (windows)",
+      "prompt": "Do you want to remove gaming launcher caches (Steam, shader caches)?",
+      "paths": [
+        "~\\AppData\\Local\\Steam\\htmlcache",
+        "C:\\Program Files (x86)\\Steam\\appcache",
+        "C:\\Program Files (x86)\\Steam\\depotcache",
+        "C:\\Program Files (x86)\\Steam\\logs",
+        "~\\AppData\\Local\\NVIDIA\\GLCache",
+        "~\\AppData\\Local\\NVIDIA\\DXCache"
       ]
     },
     "user": {
-      "title": "User-Cache (browser/thumbnail)",
-      "prompt": "Do you want to remove user cache (browser/thumbnail)?",
+      "title": "User-Cache (extended windows)",
+      "prompt": "Do you want to remove user cache (browser, thumbnails, app caches)?",
       "paths": [
-        "~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache",
-        "~\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Cache",
-        "~\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache",
-        "~\\AppData\\Local\\Microsoft\\Windows\\Explorer"
+        "~\\AppData\\Local\\Microsoft\\Windows\\Explorer",
+        "~\\AppData\\Roaming\\Code\\Cache",
+        "~\\AppData\\Roaming\\Code\\CachedData",
+        "~\\AppData\\Roaming\\Discord\\Cache",
+        "~\\AppData\\Roaming\\Spotify\\Data",
+        "~\\AppData\\Local\\Temp"
       ]
     }
   }

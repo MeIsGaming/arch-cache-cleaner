@@ -9,6 +9,7 @@ on:
       - "LICENSE"
       - "scripts/sync_aur.sh"
       - ".github/workflows/aur-sync.yml"
+      - "cache_cleaner.py"
 
 jobs:
   sync-aur:
