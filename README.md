@@ -1,3 +1,7 @@
+> **This repository has moved.**
+> It now lives at <https://git.purrr.chat/ashley/arch-cache-cleaner>.
+> This copy is archived and receives no further updates.
+
 # arch-cache-cleaner
 
 Interaktiver, scriptbarer Cache-Cleaner für Linux, macOS und Windows.
